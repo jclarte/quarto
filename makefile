@@ -1,0 +1,1 @@
+# a simple make file to setup the whole project

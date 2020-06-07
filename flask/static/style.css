@@ -1,0 +1,20 @@
+.grid-container {
+  display: grid;
+  grid-template-columns: 48px 48px 48px 48px;
+  grid-template-rows: 48px 48px 48px 48px;
+  width: 200;
+  grid-gap: 2px;
+  background-color: #2196F3;
+  padding: 2px;
+}
+
+.grid-container > div {
+  background-color: rgba(255, 255, 255, 0.8);
+  text-align: center;
+  padding: 2px 0;
+  font-size: 10px;
+}
+
+.hidden {
+  display: none;
+}
