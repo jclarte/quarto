@@ -241,6 +241,8 @@ if __name__ == '__main__':
     import time
     import statistics
     
+    
+    print("Testing quarto logic random_rollout")
     sim_time = list()
     score = {
         -1 : 0,
@@ -248,12 +250,32 @@ if __name__ == '__main__':
         1 : 0,
         2 : 0,
     }
-    print("Testing quarto logic")
     for _ in range(10000):
         game = Quarto()
         start = time.time()
-        while game.state != State.END:
-            game.transition(choice(game.options()))
+        game.random_rollout()
+        score[game.end()] += 1
+        sim_time.append(time.time()-start)
+
+    mean = statistics.mean(sim_time)
+    print(f"Average time on 10000 simulations:{mean*1000:.8f}ms")
+    print(f"Tie frequency:{score[2]/10000:.2%}")
+    print(f"Player 0 win frequency:{score[0]/10000:.2%}")
+    print(f"Player 1 win frequency:{score[1]/10000:.2%}")
+
+    print()
+    print("Testing quarto logic enhanced_rollout")
+    sim_time = list()
+    score = {
+        -1 : 0,
+        0 : 0,
+        1 : 0,
+        2 : 0,
+    }
+    for _ in range(10000):
+        game = Quarto()
+        start = time.time()
+        game.enhanced_rollout()
         score[game.end()] += 1
         sim_time.append(time.time()-start)
 
