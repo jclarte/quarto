@@ -43,7 +43,8 @@ class MCTS:
         player = curr_game.player
         # rollout
         if curr_game.end() == -1:
-            end = curr_game.random_rollout()
+            # end = curr_game.random_rollout()
+            end = curr_game.enhanced_rollout()
         else:
             end = curr_game.end()
             self.STATES[new_hash]["complete"] = True

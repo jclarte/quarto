@@ -177,6 +177,64 @@ class Quarto:
             self.transition(choice(self.options()))
         return self.end()
 
+    def enhanced_rollout(self):
+        while self.state != State.END:
+            options = self.options()
+            # check if there is a winning move
+            if self.state == State.PLACE:
+                for o in options:
+                    row = o // 4
+                    col = o % 4
+                    piece = self.PIECES[self.selected]
+                    if self.row_empty[row] == 1 and any(map(lambda k : k is not None, self._compare(piece, self.row_common[row]))):
+                        action = o
+                        break
+                    if self.col_empty[col] == 1 and any(map(lambda k : k is not None, self._compare(piece, self.col_common[col]))):
+                        action = o
+                        break
+                    if o%5 == 0 and self.diag_empty[0] == 1 and any(map(lambda k : k is not None, self._compare(piece, self.diag_common[0]))):
+                        action = o
+                        break
+                    if o!=0 and o%3 == 0 and self.diag_empty[0] == 1 and any(map(lambda k : k is not None, self._compare(piece, self.diag_common[0]))):
+                        action = o
+                        break
+                else:
+                    action = choice(options)
+            else:
+                # can be enhanced again by not chosing winning pieces
+                menacing = list()
+                for p in filter(lambda n: self.board[n] is None, range(16)):
+                    row = p // 4
+                    col = p % 4
+                    if self.row_empty[row] == 1:
+                        menacing.append(self.row_common[row].copy())
+                    if self.row_empty[col] == 1:
+                        menacing.append(self.col_common[col].copy())
+                    if p%5 and self.diag_empty[0] == 1:
+                        menacing.append(self.diag_common[0].copy())
+                    if p!=0 and p%3 and self.diag_empty[1] == 1:
+                        menacing.append(self.diag_common[1].copy())
+                if menacing:
+                    remove_options = list()
+                    for o in options:
+                        piece = self.PIECES[o]
+                        if any(map(lambda m : any(map(
+                                            lambda f : f is not None,
+                                            self._compare(piece, m),
+                                            )), 
+                                menacing)
+                                ):
+                            remove_options.append(o)
+                    # todo : look intop this .. weird stuff down there
+                    if len(remove_options) < len(options):
+                        options = sorted(set(options) - set(remove_options))
+
+                action = choice(options)
+                        
+            self.transition(action)
+        return self.end()
+
+
         
 if __name__ == '__main__':
 
