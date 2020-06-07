@@ -13,7 +13,11 @@
 
 <body>
 
+  
+
 <div id="app">
+
+  <h1>PLAYER [[game_state.player]] : [[ game_state.state ]]</h1>
 
   <div v-for="piece in game_state.all_pieces" class="hidden">
     <img v-bind:id="piece.im_id" v-bind:src="piece.img" alt="plop" class="hidden">

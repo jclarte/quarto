@@ -12,11 +12,14 @@ print(PYQUARTO_PATH)
 sys.path.append(PYQUARTO_PATH)
 
 from quarto_logic import Quarto, State
+from mcts import MCTS
 
 
 app = Flask(__name__)
 
 GAME = Quarto()
+BOT = MCTS()
+N_ITER = 1000
 
 def get_pieces():
     result = list()
@@ -79,7 +82,7 @@ def parse_state():
     board_pieces = get_board_array()
     available = get_available_array()
 
-    if GAME.selected:
+    if GAME.selected is not None:
         selected = {
             "img" : "/static/images/" + "".join(map(str, GAME.PIECES[GAME.selected])) + "S.png",
             "piece" : GAME.selected,
@@ -97,10 +100,23 @@ def parse_state():
         "state" : str(GAME.state),
         }
 
+from pprint import pprint
+
 @app.route("/")
-def test_grid():
+def run_game():
+    print(GAME)
+    parsed_state = parse_state()
+    print(parsed_state["player"])
+    print(parsed_state["state"])
     game_state = json.dumps(parse_state())
-    return render_template("pretty_quarto.html", game=game_state)
+    
+    return render_template("game.html", game=game_state)
+
+@app.route("/new_game", methods=["POST"])
+def reset():
+    GAME.__init__()
+    return redirect("/")
+
 
 @app.route("/play", methods=["POST"])
 def play():
@@ -113,14 +129,27 @@ def play():
     piece = request.form.get("piece")
 
     if GAME.state == State.SELECT and int(piece) in GAME.options():
+
         GAME.transition(int(piece))
-        print("played SELECT", piece)
+
+        # bot stuff
+        for _ in range(N_ITER):
+            BOT.iterate(GAME)
+
+        # place
+        GAME.transition(BOT.decide(GAME))
+        # select
+        GAME.transition(BOT.decide(GAME))
+        
     elif GAME.state == State.PLACE and int(cell) in GAME.options():
         cell_number = int(cell)
         GAME.transition(cell_number)
         print("played PLACE", cell_number)
 
-    return redirect("/")
+    if GAME.end() != -1:
+        return render_template("end.html", game=json.dumps(parse_state()))
+    else:
+        return redirect("/")
 
 if __name__ == "__main__":
     app.run(debug=True)

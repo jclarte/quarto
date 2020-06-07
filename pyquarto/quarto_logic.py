@@ -1,6 +1,7 @@
 
 from copy import deepcopy
 from enum import Enum
+from random import choice
 
 class State(Enum):
     SELECT = 0
@@ -171,38 +172,39 @@ class Quarto:
                 else:
                     self.state = State.SELECT
 
+    def random_rollout(self):
+        while self.state != State.END:
+            self.transition(choice(self.options()))
+        return self.end()
 
         
 if __name__ == '__main__':
 
+    import time
+    import statistics
+    
+    sim_time = list()
+    score = {
+        -1 : 0,
+        0 : 0,
+        1 : 0,
+        2 : 0,
+    }
     print("Testing quarto logic")
+    for _ in range(10000):
+        game = Quarto()
+        start = time.time()
+        while game.state != State.END:
+            game.transition(choice(game.options()))
+        score[game.end()] += 1
+        sim_time.append(time.time()-start)
 
-    test = Quarto()
-    while test.state != State.END:
-        print("Game :")
-        print(test)
-        print(hash(test))
-        opt = {o : (o//4, o%4) if test.state == State.PLACE else "".join(map(str, test.PIECES[o])) for o in test.options()}
-        print("Options :", opt)
-        act = int(input("select action:"))
-        print("Chosing :", act)
-        test.transition(act)
-
-        print("rows")
-        print(test.row_common)
-        print(test.row_empty)
-
-        print("cols")
-        print(test.col_common)
-        print(test.col_empty)
-
-        print("diags")
-        print(test.diag_common)
-        print(test.diag_empty)
+    mean = statistics.mean(sim_time)
+    print(f"Average time on 10000 simulations:{mean*1000:.8f}ms")
+    print(f"Tie frequency:{score[2]/10000:.2%}")
+    print(f"Player 0 win frequency:{score[0]/10000:.2%}")
+    print(f"Player 1 win frequency:{score[1]/10000:.2%}")
 
 
-    print(test)
-    print(hash(test))
-    print(test.end())
-    print("---")
+    
 
