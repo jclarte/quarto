@@ -12,10 +12,10 @@
     </head>
     
     <body>
-
-    <h1>GAME ENDED : PLAYER  [[ game_state.player ]] WINS</h1>
     
     <div id="app">
+
+        <h1>GAME ENDED : PLAYER  [[ game_state.player ]] WINS</h1>
     
       <div v-for="piece in game_state.all_pieces" class="hidden">
         <img v-bind:id="piece.im_id" v-bind:src="piece.img" alt="plop" class="hidden">

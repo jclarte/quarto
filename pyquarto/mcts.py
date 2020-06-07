@@ -41,20 +41,33 @@ class MCTS:
         self.STATES[new_hash]["n_pass"] += 1
 
         # rollout
-        result = 1 if curr_game.random_rollout() == game.player else 0
+        if curr_game.end() == -1:
+            result = 1 if curr_game.random_rollout() == game.player else 0
+        else:
+            result = 1 if curr_game.end() == game.player else 0
+            self.STATES[new_hash]["complete"] = True
+
         self.STATES[new_hash]["wins"] += result
 
         # update
         last_hash = new_hash
         for game_hash in reversed(walked):
             act = self._get_action_from_succ_hash(game_hash, last_hash)
-            N = self.STATES[game_hash]["n_pass"]
-            n = self.STATES[last_hash]["n_pass"]
-            w = self.STATES[last_hash]["wins"]
-            c = 1
-            print(f"computing with w={w}, n={n}, N={N}")
-            self.STATES[game_hash]["succ"][act][0] = w/n + c*math.sqrt(math.log(N)/n)
-            self.STATES[game_hash]["wins"] += result
+            if self.STATES[last_hash]["complete"]:
+                self.STATES[game_hash]["succ"][act][0] = 0
+                self.STATES[game_hash]["wins"] += result
+                # check if all complete
+                if all(map(lambda v : v[0] == 0, self.STATES[game_hash]["succ"].values())):
+                    self.STATES[game_hash]["complete"] = True
+            else:
+                
+                N = self.STATES[game_hash]["n_pass"]
+                n = self.STATES[last_hash]["n_pass"]
+                w = self.STATES[last_hash]["wins"]
+                c = 1
+                # print(f"computing with w={w}, n={n}, N={N}")
+                self.STATES[game_hash]["succ"][act][0] = w/n + c*math.sqrt(math.log(N)/n)
+                self.STATES[game_hash]["wins"] += result
             last_hash = game_hash
 
     def decide(self, game):
@@ -65,6 +78,8 @@ class MCTS:
             w = self.STATES[succ]["wins"]
             n = self.STATES[succ]["n_pass"]
             values[o] = w/n
+
+        print("values:", values)
 
         return max(
                     values, 
@@ -86,6 +101,7 @@ class MCTS:
                 "succ" : {o:[math.inf, None] for o in game.options()},
                 "n_pass" : 0,
                 "wins" : 0,
+                "complete" : False,
             }
 
 

@@ -132,14 +132,16 @@ def play():
 
         GAME.transition(int(piece))
 
-        # bot stuff
+        # bot place
         for _ in range(N_ITER):
             BOT.iterate(GAME)
+        GAME.transition(BOT.decide(GAME))
 
-        # place
-        GAME.transition(BOT.decide(GAME))
-        # select
-        GAME.transition(BOT.decide(GAME))
+        # bot select
+        if GAME.end() == -1:
+            for _ in range(N_ITER):
+                BOT.iterate(GAME)
+            GAME.transition(BOT.decide(GAME))
         
     elif GAME.state == State.PLACE and int(cell) in GAME.options():
         cell_number = int(cell)
