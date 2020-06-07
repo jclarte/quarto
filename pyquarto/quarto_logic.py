@@ -76,7 +76,7 @@ class Quarto:
         diag 0 : 0, 5, 10 ,15
         diag 1 : 3, 6,  9, 12
         """
-        return [i*[5, 3][diag_idx] for i in range(4)]
+        return [(i + diag_idx)*[5, 3][diag_idx] for i in range(4)]
 
     @staticmethod
     def _compare(piece_1, piece_2):
@@ -146,7 +146,7 @@ class Quarto:
                         self.diag_common[0] = self._compare(piece, self.diag_common[0])
                     self.diag_empty[0] -= 1
                     
-                if action % 3 == 0:
+                if action != 0 and action % 3 == 0:
                     if self.diag_empty[1] == 4:
                         self.diag_common[1] = piece.copy()
                     else:

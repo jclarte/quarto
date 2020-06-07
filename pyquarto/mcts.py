@@ -89,8 +89,8 @@ class MCTS:
             succ = self.STATES[game_hash]["succ"][o][1]
             w = self.STATES[succ]["wins"][game.player]
             n = self.STATES[succ]["n_pass"]
+            print(f" o:{o} wins:{w} n_pass:{n}")
             values[o] = w/n
-
         print("values:", values)
 
         return max(

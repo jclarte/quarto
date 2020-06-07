@@ -135,13 +135,17 @@ def play():
         # bot place
         for _ in range(N_ITER):
             BOT.iterate(GAME)
-        GAME.transition(BOT.decide(GAME))
+        bot_action = BOT.decide(GAME)
+        print("Bot is placing:", bot_action)
+        GAME.transition(bot_action)
 
         # bot select
         if GAME.end() == -1:
             for _ in range(N_ITER):
                 BOT.iterate(GAME)
-            GAME.transition(BOT.decide(GAME))
+            bot_action = BOT.decide(GAME)
+            print("Bot is selecting:", bot_action)
+            GAME.transition(bot_action)
         
     elif GAME.state == State.PLACE and int(cell) in GAME.options():
         cell_number = int(cell)
@@ -149,6 +153,7 @@ def play():
         print("played PLACE", cell_number)
 
     if GAME.end() != -1:
+        print(GAME)
         return render_template("end.html", game=json.dumps(parse_state()))
     else:
         return redirect("/")
