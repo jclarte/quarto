@@ -195,13 +195,13 @@ class Quarto:
                     if o%5 == 0 and self.diag_empty[0] == 1 and any(map(lambda k : k is not None, self._compare(piece, self.diag_common[0]))):
                         action = o
                         break
-                    if o!=0 and o%3 == 0 and self.diag_empty[0] == 1 and any(map(lambda k : k is not None, self._compare(piece, self.diag_common[0]))):
+                    if o!=0 and o!=15 and o%3 == 0 and self.diag_empty[0] == 1 and any(map(lambda k : k is not None, self._compare(piece, self.diag_common[0]))):
                         action = o
                         break
                 else:
                     action = choice(options)
             else:
-                # can be enhanced again by not chosing winning pieces
+                # not chosing winning pieces
                 menacing = list()
                 for p in filter(lambda n: self.board[n] is None, range(16)):
                     row = p // 4
@@ -212,7 +212,7 @@ class Quarto:
                         menacing.append(self.col_common[col].copy())
                     if p%5 and self.diag_empty[0] == 1:
                         menacing.append(self.diag_common[0].copy())
-                    if p!=0 and p%3 and self.diag_empty[1] == 1:
+                    if p!=0 and p!=15 and p%3 and self.diag_empty[1] == 1:
                         menacing.append(self.diag_common[1].copy())
                 if menacing:
                     remove_options = list()
