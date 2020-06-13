@@ -22,7 +22,7 @@ class MCTS:
             walked.append(game_hash)
             self.STATES[game_hash]["n_pass"] += 1
             action = max(
-                        self.STATES[game_hash]["succ"], 
+                        self.STATES[game_hash]["succ"],
                         key=lambda o : self.STATES[game_hash]["succ"][o][0],
                         )
             curr_game.transition(action)
@@ -55,7 +55,7 @@ class MCTS:
             result = [0, 1]
         else:
             result = [0, 0]
-            
+
 
         self.STATES[new_hash]["wins"][0] += result[0]
         self.STATES[new_hash]["wins"][1] += result[1]
@@ -70,15 +70,20 @@ class MCTS:
                 # check if all complete
                 if all(map(lambda v : v[0] == 0, self.STATES[game_hash]["succ"].values())):
                     self.STATES[game_hash]["complete"] = True
+                    for p in range(2):
+                        if max([self.STATES[s]["wins"][p] for s in self.STATES[game_hash]["succ"]]) > 0:
+                            self.STATES[game_hash]["wins"][p] = self.STATES[game_hash]["n_pass"]
+                        else:
+                            self.STATES[game_hash]["wins"][p] = 0
             else:
-                
+
                 N = self.STATES[game_hash]["n_pass"]
                 n = self.STATES[last_hash]["n_pass"]
                 w = self.STATES[last_hash]["wins"][player]
                 c = 1
                 # print(f"computing with w={w}, n={n}, N={N}")
                 self.STATES[game_hash]["succ"][act][0] = w/n + c*math.sqrt(math.log(N)/n)
-            
+
             self.STATES[game_hash]["wins"][0] += result[0]
             self.STATES[game_hash]["wins"][1] += result[1]
             last_hash = game_hash
@@ -95,11 +100,11 @@ class MCTS:
         print("values:", values)
 
         return max(
-                    values, 
+                    values,
                     key=lambda o : values[o],
                     )
 
-            
+
     def _get_action_from_succ_hash(self, game_hash, succ_hash):
 
         for o, data in self.STATES[game_hash]["succ"].items():
