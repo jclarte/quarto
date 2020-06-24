@@ -56,6 +56,16 @@ class Quarto:
             lines += [l1[:-1], l2[:-1], "--+--+--+--"]
         selected = "".join(map(str, self.PIECES[self.selected])) if self.selected else "None"
         return "\n".join(lines[:-1] + [selected])
+
+    def to_dict(self):
+
+        return {
+            "player" : self.player,
+            "selected" : self.selected,
+            "state" : str(self.state),
+            "board" : self.board,
+            "available" : self.available,
+            }
             
 
     def __hash__(self):

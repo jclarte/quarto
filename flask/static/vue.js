@@ -4,7 +4,7 @@ var app = new Vue({
   data : {
     game_state: game_state,
     selected_cell: null,
-    selected_piece: null,
+    selected_piece: game_state.selected,
   },
   methods: {
     test: function(data) {
@@ -70,9 +70,12 @@ var app = new Vue({
     draw_selected: function () {
       var canvas = document.getElementById("selected");
       var ctx = canvas.getContext('2d');
-      if (this.game_state.selected != null) {
-        var img = document.getElementById("im"+this.game_state.selected.piece);
-        console.log("selected is " + this.game_state.selected.piece);
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, 100, 100);
+      if (this.selected_piece != null) {
+        var piece = this.game_state.all_pieces[this.selected_piece.piece];
+        console.log("selected is " + piece);
+        var img = document.getElementById(piece.im_id);
         console.log("draw image " + img.src + " in selected");
         ctx.drawImage(img, 0, 0, 100, 100);
       }
@@ -112,6 +115,7 @@ var app = new Vue({
       console.log("Row coords: " + row + ", Col coords: " + col);
 
       this.selected_piece = row*8 + col;
+      this.draw_selected();
     }
 
   }

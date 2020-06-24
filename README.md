@@ -10,7 +10,7 @@ It can be used as a toy environment for the test of various algorithms.
 
 Currently, interface is through flask app (with noobish VueJS frontend).
 
-Go to flask directory and run `app.py` to serve default server on port 5000. `localhost:5000` will server the game.
+Go to flask directory and run `app.py` to serve default server on port 5000. `localhost:5000` will serve the game.
 
 The goal is to have some nice parametrisation and visualisation of various algorithms.
 
