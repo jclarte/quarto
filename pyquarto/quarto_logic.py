@@ -3,20 +3,16 @@ from copy import deepcopy
 from enum import Enum
 from random import choice
 
+
 class State(Enum):
     SELECT = 0
     PLACE = 1
     END = 2
 
+
 class Quarto:
 
-    PIECES = [
-                [n // 8,
-                (n % 8) // 4,
-                (n % 4) // 2,
-                n % 2]
-                for n in range(16)
-                ]
+    PIECES = [[n // 8, (n % 8) // 4, (n % 4) // 2, n % 2] for n in range(16)]
 
     def __init__(self):
         self.board = [None for _ in range(16)]
@@ -60,13 +56,12 @@ class Quarto:
     def to_dict(self):
 
         return {
-            "player" : self.player,
-            "selected" : self.selected,
-            "state" : str(self.state),
-            "board" : self.board,
-            "available" : self.available,
+            "player": self.player,
+            "selected": self.selected,
+            "state": str(self.state),
+            "board": self.board,
+            "available": self.available,
             }
-            
 
     def __hash__(self):
         sym_selected = "." if self.selected is None else chr(65 + self.selected)
@@ -106,17 +101,16 @@ class Quarto:
         if self.state == State.SELECT:
             return -1
 
-
         for row_idx in range(4):
-            if self.row_empty[row_idx] == 0 and any(map(lambda c : c != None, self.row_common[row_idx])):
+            if self.row_empty[row_idx] == 0 and any(map(lambda c: c is not None, self.row_common[row_idx])):
                 return self.player
 
         for col_idx in range(4):
-            if self.col_empty[col_idx] == 0 and any(map(lambda c : c != None, self.col_common[col_idx])):
+            if self.col_empty[col_idx] == 0 and any(map(lambda c: c is not None, self.col_common[col_idx])):
                 return self.player
 
         for diag_idx in range(2):
-            if self.diag_empty[diag_idx] == 0 and any(map(lambda c : c != None, self.diag_common[diag_idx])):
+            if self.diag_empty[diag_idx] == 0 and any(map(lambda c: c is not None, self.diag_common[diag_idx])):
                 return self.player
 
         # care to check at end AFTER placement
@@ -135,7 +129,7 @@ class Quarto:
                 self.selected = action
                 self.player = (self.player + 1) % 2
                 self.state = State.PLACE
-        
+
         elif self.state == State.PLACE:
             if self.board[action] is None:
                 piece = self.PIECES[self.selected]
@@ -148,21 +142,20 @@ class Quarto:
                 self.selected = None
 
                 # make all updates needed
-                
+
                 if action % 5 == 0:
                     if self.diag_empty[0] == 4:
                         self.diag_common[0] = piece.copy()
                     else:
                         self.diag_common[0] = self._compare(piece, self.diag_common[0])
                     self.diag_empty[0] -= 1
-                    
+
                 if action != 0 and action % 3 == 0:
                     if self.diag_empty[1] == 4:
                         self.diag_common[1] = piece.copy()
                     else:
                         self.diag_common[1] = self._compare(piece, self.diag_common[1])
                     self.diag_empty[1] -= 1
-                    
 
                 if self.row_empty[row] == 4:
                     self.row_common[row] = piece.copy()
@@ -231,7 +224,7 @@ class Quarto:
                         if any(map(lambda m : any(map(
                                             lambda f : f is not None,
                                             self._compare(piece, m),
-                                            )), 
+                                            )),
                                 menacing)
                                 ):
                             remove_options.append(o)
@@ -240,25 +233,23 @@ class Quarto:
                         options = sorted(set(options) - set(remove_options))
 
                 action = choice(options)
-                        
+
             self.transition(action)
         return self.end()
 
 
-        
 if __name__ == '__main__':
 
     import time
     import statistics
-    
-    
+
     print("Testing quarto logic random_rollout")
     sim_time = list()
     score = {
-        -1 : 0,
-        0 : 0,
-        1 : 0,
-        2 : 0,
+        -1: 0,
+        0: 0,
+        1: 0,
+        2: 0,
     }
     for _ in range(10000):
         game = Quarto()
@@ -277,10 +268,10 @@ if __name__ == '__main__':
     print("Testing quarto logic enhanced_rollout")
     sim_time = list()
     score = {
-        -1 : 0,
-        0 : 0,
-        1 : 0,
-        2 : 0,
+        -1: 0,
+        0: 0,
+        1: 0,
+        2: 0,
     }
     for _ in range(10000):
         game = Quarto()
@@ -294,7 +285,3 @@ if __name__ == '__main__':
     print(f"Tie frequency:{score[2]/10000:.2%}")
     print(f"Player 0 win frequency:{score[0]/10000:.2%}")
     print(f"Player 1 win frequency:{score[1]/10000:.2%}")
-
-
-    
-

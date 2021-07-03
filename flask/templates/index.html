@@ -1,0 +1,36 @@
+
+<html>
+
+    
+    
+    <head>
+      <link rel="stylesheet" href="/static/style.css">
+      <script src="https://cdn.jsdelivr.net/npm/vue"></script>
+      <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    </head>
+    
+    <body>
+    
+    <h1>Welcome to Quarto App</h1>
+
+    <!-- <button onclick="test()">Quarto</button> -->
+    <button onclick="quarto_new_game()">Quarto</button>
+
+    <script>
+        function quarto_new_game() {
+            axios({
+                method: 'get',
+                url: 'http://127.0.0.1:5000/new_game',
+                data: {},
+            })
+            .then (function (response) {
+                console.log(response);
+            });
+        }
+    function test() {
+            console.log("plop");
+        }
+    </script>
+    </body>
+    </html>
+    
