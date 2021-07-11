@@ -136,13 +136,3 @@ class MCTS:
     def get_unexplored(self, game):
         return list(filter(lambda o: self.STATES[hash(game)]["succ"][o][0] == math.inf, self.STATES[hash(game)]["succ"]))[0]
 
-
-if __name__ == "__main__":
-    from quarto_logic import Quarto
-    test = Quarto()
-    mcts = MCTS()
-    for _ in range(1000):
-        mcts.iterate(test)
-
-    print(mcts.STATES[hash(test)])
-    print(mcts.decide(test))

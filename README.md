@@ -16,12 +16,16 @@ The goal is to have some nice parametrisation and visualisation of various algor
 
 ## Checklist
 
-1. add better user interface
+1. enhance gui management (sprite refresh, settings)
 
-2. have bot parameter customisation and game setup
+2. fix mcts
 
-3. have more bot types
+3. add CLI options to setup game mode
 
-4. manage multi games with different users
+4. have bot parameter customisation and game setup in a menu
 
-5. store game data in a database
+5. have more bot types
+
+6. manage multi games with different users
+
+7. store game data in a database
