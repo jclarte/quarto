@@ -64,6 +64,8 @@ class MCTS:
         last_hash = new_hash
         for game_hash in reversed(walked):
             act = self._get_action_from_succ_hash(game_hash, last_hash)
+            if act is None:
+                return
             player = self.STATES[game_hash]["player"]
             if self.STATES[last_hash]["complete"]:
                 self.STATES[game_hash]["succ"][act][0] = 0
@@ -93,6 +95,9 @@ class MCTS:
         values = dict()
         for o in game.options():
             succ = self.STATES[game_hash]["succ"][o][1]
+            if succ is None:
+                print(f" o:{o} NO SUCC")
+                continue
             w = self.STATES[succ]["wins"][game.player]
             n = self.STATES[succ]["n_pass"]
             print(f" o:{o} wins:{w} n_pass:{n}")

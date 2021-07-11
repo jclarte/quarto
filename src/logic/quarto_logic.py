@@ -4,9 +4,9 @@ from enum import Enum
 from random import choice
 
 class State(Enum):
-    SELECT = 0
-    PLACE = 1
-    END = 2
+    SELECT = 'Select'
+    PLACE = 'Place'
+    END = 'End'
 
 class Quarto:
 
@@ -33,6 +33,10 @@ class Quarto:
         self.col_empty = [4 for _ in range(4)]
         self.diag_common = [[None for _ in range(4)] for _ in range(2)]
         self.diag_empty = [4 for _ in range(2)]
+
+    @property
+    def board_number(self):
+        return [self.PIECES.index(p) if p else None for p in self.board]
 
     def copy(self):
         return deepcopy(self)
@@ -115,7 +119,7 @@ class Quarto:
 
         return -1
 
-    def transition(self, action):
+    def transition(self, action: int):
         """
         transition do nothing if action is bad
         """
@@ -128,6 +132,7 @@ class Quarto:
         
         elif self.state == State.PLACE:
             if self.board[action] is None:
+                assert isinstance(self.selected, int)
                 piece = self.PIECES[self.selected]
                 sym_piece = chr(65 + self.selected)
                 col = action % 4

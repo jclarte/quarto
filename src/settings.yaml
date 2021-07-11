@@ -1,0 +1,6 @@
+screen:
+  width: 800
+  height: 600
+
+bot:
+  n_iter: 2500
