@@ -132,7 +132,7 @@ class GameScene(Scene):
         self.all_sprites.update()
         self.piece_sprites.update()
 
-        if self.game.player == 1 and self.game.end() == -1:
+        if self.game.player == 1 and self.game.state != State.END:
             for _ in range(self.n_iter):
                 self.bot.iterate(self.game)
 

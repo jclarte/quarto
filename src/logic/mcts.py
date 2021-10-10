@@ -70,9 +70,19 @@ class MCTS:
             if self.STATES[last_hash]["complete"]:
                 self.STATES[game_hash]["succ"][act][0] = 0
                 # check if all complete
-                if all(map(lambda v : v[0] == 0, self.STATES[game_hash]["succ"].values())):
+                if all(map(
+                        lambda v: v[0] == 0,
+                        self.STATES[game_hash]["succ"].values()
+                        )):
                     self.STATES[game_hash]["complete"] = True
-                    for p in range(2):
+
+                    for p in (0, 1): # TODO: revérifier, peut être un pb ici
+
+                        from pprint import pformat
+                        print("Closing branch")
+                        print("from state", pformat(self.STATES[game_hash]))
+                        print("to state", pformat(self.STATES[game_hash]))
+
                         if max([self.STATES[s]["wins"][p] for s in self.STATES[game_hash]["succ"]]) > 0:
                             self.STATES[game_hash]["wins"][p] = self.STATES[game_hash]["n_pass"]
                         else:
@@ -82,7 +92,7 @@ class MCTS:
                 N = self.STATES[game_hash]["n_pass"]
                 n = self.STATES[last_hash]["n_pass"]
                 w = self.STATES[last_hash]["wins"][player]
-                c = 1
+                c = 1.4
                 # print(f"computing with w={w}, n={n}, N={N}")
                 self.STATES[game_hash]["succ"][act][0] = w/n + c*math.sqrt(math.log(N)/n)
 
@@ -93,6 +103,7 @@ class MCTS:
     def decide(self, game):
         game_hash = hash(game)
         values = dict()
+        print(self.STATES[game_hash])
         for o in game.options():
             succ = self.STATES[game_hash]["succ"][o][1]
             if succ is None:
@@ -103,6 +114,7 @@ class MCTS:
             print(f" o:{o} wins:{w} n_pass:{n}")
             values[o] = w/n
         print("values:", values)
+        print("size of tree:", len(self.STATES))
 
         return max(
                     values,
