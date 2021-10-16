@@ -1,6 +1,7 @@
 
 import logging
 import pygame
+import pygame.gfxdraw
 
 from .utils import Color, Position, Vector
 
@@ -40,16 +41,20 @@ class QuartoPiece(pygame.sprite.DirtySprite):
         if shape:
             topleft = (offset, offset) if not size else ((width - radius)/2, (width - radius)/2)
             topleft = tuple(map(int, topleft))
-            pygame.draw.rect(surface, color.value, pygame.rect.Rect(topleft, (radius, radius)))
+            pygame.gfxdraw.box(surface, pygame.rect.Rect(topleft, (radius, radius)), color.value)
+            pygame.gfxdraw.rectangle(surface, pygame.rect.Rect(topleft, (radius, radius)), Color.BLACK.value)
         else:
             center = (width/2, width/2)
             center = tuple(map(int, center))
-            pygame.draw.circle(surface, color.value, center, radius/2)
+            pygame.gfxdraw.filled_circle(surface, center[0], center[1], int(radius/2), color.value)
+            pygame.gfxdraw.aacircle(surface, center[0], center[1], int(radius/2), Color.BLACK.value)
+            
 
         if empty:
             center = (width/2, width/2)
             center = tuple(map(int, center))
-            pygame.draw.circle(surface, Color.WHITE.value, center, radius/5)
+            pygame.gfxdraw.filled_circle(surface, center[0], center[1], int(radius/5), Color.WHITE.value)
+            pygame.gfxdraw.aacircle(surface, center[0], center[1], int(radius/5), Color.BLACK.value)
 
         return surface
 

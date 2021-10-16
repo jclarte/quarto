@@ -27,7 +27,7 @@ class MCTS:
                         )
             curr_game.transition(action)
 
-            # update last move
+        # update last move
         game_hash = hash(curr_game)
         walked.append(game_hash)
         self.STATES[game_hash]["n_pass"] += 1

@@ -1,8 +1,8 @@
 import sys
 import os
-sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), "pyquarto"))
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), "src"))
 
-from quarto_logic import Quarto
+from logic.quarto_logic import Quarto
 
 def test_diag_0():
     actions = [3, 0, 1, 5, 5, 10, 0, 15]

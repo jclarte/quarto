@@ -171,7 +171,6 @@ class GameScene(Scene):
     def grid_click(self, position: Tuple[int, int]) -> None:
         self.grid.reset()
         cell = self.grid.pos_to_cell(Position(*position))
-        cell = cell[0], cell[1]
         self.grid.highlight(cell)
         LOG.debug(f"Clicked on cell {cell} from position {position}")
         if self.game.player == 0 and self.tmp_game.state == State.PLACE:

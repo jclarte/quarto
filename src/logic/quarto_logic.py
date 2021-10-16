@@ -246,6 +246,7 @@ if __name__ == '__main__':
     import time
     import statistics
     
+    N_SIM = 10000
     
     print("Testing quarto logic random_rollout")
     sim_time = list()
@@ -255,7 +256,7 @@ if __name__ == '__main__':
         1 : 0,
         2 : 0,
     }
-    for _ in range(10000):
+    for _ in range(N_SIM):
         game = Quarto()
         start = time.time()
         game.random_rollout()
@@ -263,10 +264,10 @@ if __name__ == '__main__':
         sim_time.append(time.time()-start)
 
     mean = statistics.mean(sim_time)
-    print(f"Average time on 10000 simulations:{mean*1000:.8f}ms")
-    print(f"Tie frequency:{score[2]/10000:.2%}")
-    print(f"Player 0 win frequency:{score[0]/10000:.2%}")
-    print(f"Player 1 win frequency:{score[1]/10000:.2%}")
+    print(f"Average time on {N_SIM} simulations:{mean*1000:.8f}ms")
+    print(f"Tie frequency:{score[2]/N_SIM:.2%}")
+    print(f"Player 0 win frequency:{score[0]/N_SIM:.2%}")
+    print(f"Player 1 win frequency:{score[1]/N_SIM:.2%}")
 
     print()
     print("Testing quarto logic enhanced_rollout")
@@ -277,7 +278,7 @@ if __name__ == '__main__':
         1 : 0,
         2 : 0,
     }
-    for _ in range(10000):
+    for _ in range(N_SIM):
         game = Quarto()
         start = time.time()
         game.enhanced_rollout()
@@ -285,10 +286,10 @@ if __name__ == '__main__':
         sim_time.append(time.time()-start)
 
     mean = statistics.mean(sim_time)
-    print(f"Average time on 10000 simulations:{mean*1000:.8f}ms")
-    print(f"Tie frequency:{score[2]/10000:.2%}")
-    print(f"Player 0 win frequency:{score[0]/10000:.2%}")
-    print(f"Player 1 win frequency:{score[1]/10000:.2%}")
+    print(f"Average time on {N_SIM} simulations:{mean*1000:.8f}ms")
+    print(f"Tie frequency:{score[2]/N_SIM:.2%}")
+    print(f"Player 0 win frequency:{score[0]/N_SIM:.2%}")
+    print(f"Player 1 win frequency:{score[1]/N_SIM:.2%}")
 
 
     
