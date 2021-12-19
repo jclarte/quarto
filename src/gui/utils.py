@@ -14,9 +14,6 @@ class Color(Enum):
     YELLOW = pygame.Color((250, 250, 50))
 
 
-
-
-
 IMAGE_DIR = pathlib.Path(__file__).parent.joinpath('resources')
 
 
