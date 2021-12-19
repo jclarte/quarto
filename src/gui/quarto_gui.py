@@ -13,6 +13,7 @@ from .scene import Scene
 from .textbox import TextBox
 from .utils import Position
 from ..logic.quarto_logic import Quarto, State
+from ..logic.mcts_quarto import QuartoInterface
 from ..logic.mcts import MCTS
 
 LOG = logging.getLogger(__name__)
@@ -52,6 +53,10 @@ class GameScene(Scene):
         self.event_manager = EventManager()
         self.game = Quarto()
         self.tmp_game = self.game.copy()
+        self.action = None
+
+        # log
+        self.actions_played = []
 
         # DEV
         def printclick(position) -> None:
@@ -67,7 +72,7 @@ class GameScene(Scene):
         bot_settings = settings.get('bot', {})
 
         self.n_iter = bot_settings.get('n_iter', 1000)
-        self.bot = MCTS()
+        self.bot = MCTS(QuartoInterface)
         
 
 
@@ -136,8 +141,14 @@ class GameScene(Scene):
             for _ in range(self.n_iter):
                 self.bot.iterate(self.game)
 
-            action = self.bot.decide(self.game)
+            # action = self.bot.decide(self.game)
+            action = self.bot.chose(self.game)
+            LOG.debug(f"Chosing action {action}")
             self.game.transition(action)
+
+            # log
+            self.actions_played.append(action)
+            LOG.debug(f'Played actions: {self.actions_played}')
 
             self.tmp_game = self.game.copy()
             self.update_pieces_position()
@@ -145,10 +156,15 @@ class GameScene(Scene):
         self.draw()
 
     def draw(self) -> None:
-        self.text.text = f"Player {self.tmp_game.player} turn on state {self.tmp_game.state.value}"
+        
         end = self.game.end()
-        if end != -1:
+        if end == 2:
+            self.text.text = f"Tie !"
+        elif end != -1:
             self.text.text = f"Player {end} wins !"
+        else:
+            self.text.text = f"Player {self.tmp_game.player} turn on state {self.tmp_game.state.value}"
+
         self.text.draw(self.screen)
         self.all_sprites.draw(self.screen)
         self.piece_sprites.draw(self.screen)
@@ -178,10 +194,15 @@ class GameScene(Scene):
             self.action = cell[0] + 4*cell[1]
 
     def button_click(self) -> None:
+        self.button.clicked()
         if self.game.player == 0 and self.action in self.game.options():
             self.game.transition(self.action)
             self.tmp_game = self.game.copy()
             LOG.debug(f"Playing action {self.action}")
+            # log
+            self.actions_played.append(self.action)
+            LOG.debug(f'Played actions: {self.actions_played}')
+
             self.action = None
             self.update_pieces_position()
             

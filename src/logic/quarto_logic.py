@@ -50,16 +50,19 @@ class Quarto:
 
     def __str__(self):
 
-        lines = list()
-        for row in range(4):
-            l1 = ""
-            l2 = ""
-            for cell in self._row(row):
-                l1 += self._cell_str(cell)[0] + "|"
-                l2 += self._cell_str(cell)[1] + "|"
-            lines += [l1[:-1], l2[:-1], "--+--+--+--"]
-        selected = "".join(map(str, self.PIECES[self.selected])) if self.selected else "None"
-        return "\n".join(lines[:-1] + [selected])
+        sym_selected = "." if self.selected is None else chr(65 + self.selected)
+        return "".join(self.sym_board) + sym_selected
+
+        # lines = list()
+        # for row in range(4):
+        #     l1 = ""
+        #     l2 = ""
+        #     for cell in self._row(row):
+        #         l1 += self._cell_str(cell)[0] + "|"
+        #         l2 += self._cell_str(cell)[1] + "|"
+        #     lines += [l1[:-1], l2[:-1], "--+--+--+--"]
+        # selected = "".join(map(str, self.PIECES[self.selected])) if self.selected is not None else "None"
+        # return "\n".join(lines[:-1] + [selected])
             
 
     def __hash__(self):
@@ -144,14 +147,14 @@ class Quarto:
 
                 # make all updates needed
                 
-                if action % 5 == 0:
+                if action in (0, 5, 10, 15):
                     if self.diag_empty[0] == 4:
                         self.diag_common[0] = piece.copy()
                     else:
                         self.diag_common[0] = self._compare(piece, self.diag_common[0])
                     self.diag_empty[0] -= 1
                     
-                if action != 0 and action % 3 == 0:
+                if action in (3, 6, 9, 12):
                     if self.diag_empty[1] == 4:
                         self.diag_common[1] = piece.copy()
                     else:

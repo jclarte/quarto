@@ -1,150 +1,203 @@
 """
-MCTS implementation for quarto
+implementation of MCTS algorithm
 """
+from abc import ABC, abstractmethod
+import logging
+from math import sqrt, log
+from typing import Any, List, NewType, Optional
 
-import math
+# logging.basicConfig(level='DEBUG')
+LOG = logging.getLogger(__name__)
+
+GameState = NewType('GameState', Any)
+
+class GameInterface(ABC):
+    """
+    base class used by mcts for games
+    any game using MCTS should implements this interface
+    """
+    @classmethod
+    @abstractmethod
+    def n_players(cls) -> int:
+        """return the number of players of the game"""
+
+    @classmethod
+    @abstractmethod
+    def transition(cls, state: GameState, option: Any) -> GameState:
+        """return state of the game after doing option from state"""
+
+    @classmethod
+    @abstractmethod
+    def options(cls, state: GameState) -> List[Any]:
+        """return the list of available opions from state"""
+
+    @classmethod
+    @abstractmethod
+    def end(cls, state: GameState) -> bool:
+        """return True if game has ended"""
+
+    @classmethod
+    @abstractmethod
+    def score(cls, state: GameState) -> List[int]:
+        """return a list of score for every player"""
+
+    @classmethod
+    @abstractmethod
+    def player(cls, state: GameState) -> int:
+        """return the player number as int"""
+
+    @classmethod
+    @abstractmethod
+    def hash(cls, state: GameState) -> int:
+        """return a hash value for a game state"""
+
+    @classmethod
+    @abstractmethod
+    def rollout(cls, state: GameState) -> Any:
+        """rollout method is expected to generate an ended game state from state by any method"""
+
+
+# exploration parameter for ucb
+C = 1.41
+
 
 class MCTS:
+    """
+    data structure for stored state is
+    key=hash value of state
+        state=game_state
+        children=dict[option:hash(game_state) or None]
+        score=[player0 score, player1 score]
+        passed=number of times on this state
+    """
 
-    STATES = dict()
+    class _Node:
+        game: Optional[GameInterface] = None
 
-    def iterate(self, game):
+        def __init__(self, state: GameState) -> None:
+            """class for stored games"""
+            assert self.game, "_Node.game not initialised. You should use _Node.set_game(GameInterface)"
+            self.state = state.copy()
+            self.N = 1
+            self.score = self.game.score(state)
+            self.children = {o: None for o in self.game.options(state)}
 
-        # setup
-        if hash(game) not in self.STATES:
-            self.add_state(game)
+        def __repr__(self) -> str:
+            return f"Node(state={self.state}, N={self.N}, score={self.score}, children={self.children})"
 
-        # explore
-        curr_game = game.copy()
-        walked = []
-        while not self.has_unexplored(curr_game):
-            game_hash = hash(curr_game)
-            walked.append(game_hash)
-            self.STATES[game_hash]["n_pass"] += 1
-            action = max(
-                        self.STATES[game_hash]["succ"],
-                        key=lambda o : self.STATES[game_hash]["succ"][o][0],
-                        )
-            curr_game.transition(action)
+        @classmethod
+        def set_game(cls, game: GameInterface) -> None:
+            cls.game = game
+            LOG.debug(f"Set _Node.game = {game}")
 
-        # update last move
-        game_hash = hash(curr_game)
-        walked.append(game_hash)
-        self.STATES[game_hash]["n_pass"] += 1
+    def __init__(self, game: GameInterface) -> None:
+        self.states = dict()
+        self.walked = set()
+        self.game = game
+        self._Node.set_game(game)
 
-        # expand
-        expand_action = self.get_unexplored(curr_game)
-        curr_game.transition(expand_action)
-        new_hash = hash(curr_game)
-        self.STATES[game_hash]["succ"][expand_action][1] = new_hash
-        self.add_state(curr_game)
-        self.STATES[new_hash]["n_pass"] += 1
+    @staticmethod
+    def compute_ucb(w: int, n: int, N: int) -> float:
+        """compute a ucb value"""
+        return w/n + C*sqrt(log(N)/n)
 
-        player = curr_game.player
-        # rollout
-        if curr_game.end() == -1:
-            # end = curr_game.random_rollout()
-            end = curr_game.enhanced_rollout()
-        else:
-            end = curr_game.end()
-            self.STATES[new_hash]["complete"] = True
+    def explore(self, state: GameState) -> Any:
 
-        if end == 0:
-            result = [1, 0]
-        elif end == 1:
-            result = [0, 1]
-        else:
-            result = [0, 0]
+        LOG.debug(f"Exploring from state {state}")
 
+        if self.game.end(state):
+            LOG.debug(f"Game state is at end")
+            return state
 
-        self.STATES[new_hash]["wins"][0] += result[0]
-        self.STATES[new_hash]["wins"][1] += result[1]
+        ucb = dict()
+        state_hash = self.game.hash(state)
+        self.walked.add(state_hash)
+        node = self.states[state_hash]
+        for option, game_hash in node.children.items():
+            if game_hash is None:
+                LOG.debug(f"Unexplored node found for action {option}")
+                resulting_state = self.game.transition(state, option)
+                new_hash = self.game.hash(resulting_state)
+                node.children[option] = new_hash
+                return resulting_state
+            game_node = self.states[game_hash]
+            player = self.game.player(state)
+            w = game_node.score[player]
+            n = game_node.N
+            N = node.N
+            ucb[option] = self.compute_ucb(w, n, N)
+        chosen_option = max(ucb, key=lambda k: ucb[k])
+        resulting_state = self.game.transition(state, chosen_option)
+        node.children[chosen_option] = self.game.hash(resulting_state)
+        
+        return self.explore(resulting_state)
 
-        # update
-        last_hash = new_hash
-        for game_hash in reversed(walked):
-            act = self._get_action_from_succ_hash(game_hash, last_hash)
-            if act is None:
-                return
-            player = self.STATES[game_hash]["player"]
-            if self.STATES[last_hash]["complete"]:
-                self.STATES[game_hash]["succ"][act][0] = 0
-                # check if all complete
-                if all(map(
-                        lambda v: v[0] == 0,
-                        self.STATES[game_hash]["succ"].values()
-                        )):
-                    self.STATES[game_hash]["complete"] = True
+    def expand(self, state: GameState) -> Any:
+        LOG.debug(f"Expanding state {state}")
+        # if self.game.end(state):
+        #     LOG.debug(f"Game state is at end")
+        #     return state
 
-                    for p in (0, 1): # TODO: revérifier, peut être un pb ici
+        game_hash = self.game.hash(state)
+        self.states[game_hash] = self._Node(state)
+        self.walked.add(game_hash)
+        return state
 
-                        from pprint import pformat
-                        print("Closing branch")
-                        print("from state", pformat(self.STATES[game_hash]))
-                        print("to state", pformat(self.STATES[game_hash]))
+    def rollout(self, state: GameState) -> Any:
+        LOG.debug(f"Rollout from state {state}")
+        if self.game.end(state):
+            LOG.debug(f"Game state is at end")
+            return state
+        return self.game.rollout(state)
 
-                        if max([self.STATES[s]["wins"][p] for s in self.STATES[game_hash]["succ"]]) > 0:
-                            self.STATES[game_hash]["wins"][p] = self.STATES[game_hash]["n_pass"]
-                        else:
-                            self.STATES[game_hash]["wins"][p] = 0
-            else:
+    def update(self, state: GameState) -> None:
 
-                N = self.STATES[game_hash]["n_pass"]
-                n = self.STATES[last_hash]["n_pass"]
-                w = self.STATES[last_hash]["wins"][player]
-                c = 1.4
-                # print(f"computing with w={w}, n={n}, N={N}")
-                self.STATES[game_hash]["succ"][act][0] = w/n + c*math.sqrt(math.log(N)/n)
+        assert self.game.end(state)
+        score = self.game.score(state)
+        for walked_state in self.walked:
+            for idx, value in enumerate(score):
+                self.states[walked_state].score[idx] += value
+            self.states[walked_state].N += 1
+        self.walked = set()
 
-            self.STATES[game_hash]["wins"][0] += result[0]
-            self.STATES[game_hash]["wins"][1] += result[1]
-            last_hash = game_hash
+    def iterate(self, state: GameState) -> None:
+        """an iteration of MCTS"""
+        LOG.debug(f"New iteration from state {state}")
+        # LOG.debug(f" * States: {self.states}")
+        LOG.debug(f" * Nb States: {len(self.states)}")
+        
+        if self.game.hash(state) not in self.states:
+            self.expand(state)
+        explored_state = self.explore(state)
+        expanded_state = self.expand(explored_state)
+        rollout_state = self.rollout(expanded_state)
+        LOG.debug(f" * Walked: {self.walked}")
+        self.update(rollout_state)
 
-    def decide(self, game):
-        game_hash = hash(game)
-        values = dict()
-        print(self.STATES[game_hash])
-        for o in game.options():
-            succ = self.STATES[game_hash]["succ"][o][1]
-            if succ is None:
-                print(f" o:{o} NO SUCC")
+    def chose(self, state: GameState) -> Any:
+        """return the chosen option"""
+        scores = dict()
+        player = self.game.player(state)
+        game_hash = self.game.hash(state)
+        assert game_hash in self.states, "Can't chose action for unknown state."
+        node = self.states[game_hash]
+        for option, game_node_hash in node.children.items():
+
+            if game_node_hash is None:
+                LOG.debug(f"Unexplored option {option}")
                 continue
-            w = self.STATES[succ]["wins"][game.player]
-            n = self.STATES[succ]["n_pass"]
-            print(f" o:{o} wins:{w} n_pass:{n}")
-            values[o] = w/n
-        print("values:", values)
-        print("size of tree:", len(self.STATES))
+            game_node = self.states[game_node_hash]
+            w = game_node.score[player]
+            n = game_node.N
+            win_ratio = w/n
+            scores[option] = win_ratio
+        LOG.debug(f"Actions : {scores}")
+        return max(scores, key=lambda k: scores[k])
 
-        return max(
-                    values,
-                    key=lambda o : values[o],
-                    )
-
-
-    def _get_action_from_succ_hash(self, game_hash, succ_hash):
-
-        for o, data in self.STATES[game_hash]["succ"].items():
-            if data[1] == succ_hash:
-                return o
-        else:
-            return None
-
-    def add_state(self, game):
-        self.STATES[hash(game)] = {
-                "pred" : [],
-                "succ" : {o:[math.inf, None] for o in game.options()},
-                "n_pass" : 0,
-                "wins" : [0, 0],
-                "complete" : False,
-                "player" : game.player,
-            }
-
-
-
-    def has_unexplored(self, game):
-        return any(map(lambda o: o[0] == math.inf, self.STATES[hash(game)]["succ"].values()))
-
-    def get_unexplored(self, game):
-        return list(filter(lambda o: self.STATES[hash(game)]["succ"][o][0] == math.inf, self.STATES[hash(game)]["succ"]))[0]
+    def run(self, state: GameState, n_iterations: int = 100) -> Any:
+        """make n iterations and return the chosen option"""
+        for _ in range(n_iterations):
+            self.iterate(state)
+        LOG.debug(f"States: {self.states}")
+        return self.chose(state)
 

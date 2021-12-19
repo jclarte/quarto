@@ -1,5 +1,6 @@
 import sys
 import os
+import pytest
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), "src"))
 
 from logic.quarto_logic import Quarto
@@ -81,4 +82,13 @@ def test_col_3():
 #         test.transition(a)
 #     assert test.end() == -1
 
+@pytest.mark.parametrize('actions, expected_status', (
+    ([4, 10, 0, 5, 12, 13, 3, 9, 11, 6, 9, 15, 10, 3], -1),
+))
+def test_specific_configuration(actions, expected_status):
 
+    test = Quarto()
+    for action in actions:
+        test.transition(action)
+
+    assert test.end() == expected_status
